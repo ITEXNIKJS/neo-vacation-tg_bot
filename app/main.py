@@ -3,7 +3,10 @@ from cfg import TOKEN
 from datetime import datetime
 import functions
 import logging
-
+import tour_functions
+'''
+Обработчики всех возможных кнопок и вводов из чата ТГ
+'''
 
 bot = telebot.TeleBot(TOKEN)
 start_time = datetime.now()
@@ -29,9 +32,15 @@ def callback_inline(call):
     
     elif call.data == 'set_countres':
         functions.listen_countres(bot, call.message)
+        
+    elif call.data == 'set_start_point':
+        functions.listen_start_point(bot, call.message)
     
     elif call.data == 'set_price_range':
         functions.listen_price(bot, call.message)
 
     elif call.data == 'get_tours':
-        bot.send_message(call.message.chat.id, "Пока не готово")
+        tour_functions.routs_start_message(bot, call)
+
+    elif call.data == 'edit':
+        bot.delete_message(call.message.chat.id, call.message.id)

@@ -2,7 +2,7 @@ import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMedia
 import json
 import db_con
-
+'''Функции ответа на нажатые кнопки и сохранение в MongoDB'''
 
 def start_message(bot: telebot.TeleBot ,message):
 
@@ -29,8 +29,9 @@ def listen_length(bot: telebot.TeleBot , message):
 
 
 def listen_countres(bot: telebot.TeleBot , message):
-    msg = bot.reply_to(message,  text="Какие страны, города тебе интересны?")
-    bot.register_next_step_handler(msg, save_data, bot, 'places_to_visit')
+    msg = bot.reply_to(message,  text="Какие страны, города тебе интересны?")    
+    bot.register_next_step_handler(msg, save_data_countries, bot, 'places_to_visit')
+
 
 
 def listen_start_point(bot: telebot.TeleBot , message):
@@ -46,9 +47,24 @@ def listen_price(bot: telebot.TeleBot , message):
 def save_data(msg, bot: telebot.TeleBot, type:str):
     bot.reply_to(message=msg, text= "Отлично, я запомнил")
     print(msg)
-    
-
     input_data = msg.text
-    
- 
     db_con.save_in_doc(msg.chat.id, input_data, type)
+
+
+def save_data_countries(msg, bot: telebot.TeleBot, type:str):
+
+    entered = msg.text.split(sep=', ')
+    input_data=[]
+    for e in entered:
+        js = db_con.find_by_name(e)
+        if js =="404":
+             bot.send_message(msg.chat.id, text=f"В {e} еще не возим")
+        else:
+            input_data.append(js)
+   
+    
+    db_con.save_in_doc(msg.chat.id, input_data, type)
+    bot.reply_to(message=msg, text= "Отлично, я запомнил")
+        
+ 
+   
