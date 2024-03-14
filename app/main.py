@@ -41,6 +41,15 @@ def callback_inline(call):
 
     elif call.data == 'get_tours':
         tour_functions.routs_start_message(bot, call)
+        
+    elif call.data == 'send_query':
+        tour_functions.answer_on_query(bot, call)
+    
+    elif "previous_page" in call.data:
+        tour_functions.change_page(bot, call, -1)
+
+    elif "next_page" in call.data:
+        tour_functions.change_page(bot, call, 1)
 
     elif call.data == 'edit':
         bot.delete_message(call.message.chat.id, call.message.id)

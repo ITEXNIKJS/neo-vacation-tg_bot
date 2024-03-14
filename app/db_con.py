@@ -2,6 +2,7 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from datetime import datetime
 from cfg import MONGOURL
+from server_api import get_tours
 
 '''Подключение к MongoDB и функции работы с документом бота'''
 
@@ -15,6 +16,8 @@ client.admin.command('ping')
 db = client["HotLine_Tour"]['users_input']
 cities =client["HotLine_Tour"]['cities'] 
 countries =client["HotLine_Tour"]['countries'] 
+tours = client["HotLine_Tour"]['tours']
+
 print("Pinged your deployment. You successfully connected to MongoDB!")
 
 
@@ -48,8 +51,6 @@ def get_body_by_tg_id(tg_id):
         
 def find_by_name(name):
       
-       
-        
         pipeline = [
         {"$unwind": "$cities"},  # Развернуть массив городов
         {"$match": {"cities.name": {"$regex": f"{name}", "$options": "i"}}}  # Найти город по имени
@@ -70,3 +71,27 @@ def find_by_name(name):
                       return country["countries"]
         return "404"
         
+def insert_tours(tg_id):
+       # visit_target, cur_point, start_date, day_count, max_price
+        tours.delete_one({"tg_id":tg_id})
+        user_data = db.find_one({'tg_id':tg_id}, {"_id":0})
+        for i in range(len(user_data['places_to_visit'])):
+            print(user_data['places_to_visit'][i])
+            tours_list = get_tours(user_data['places_to_visit'][i]['name'], user_data['from'], user_data["vacation_start_date"], int(user_data["vacation_days"]), int(user_data["max_price_budget"]))
+            
+            print(tours_list)
+            schema = {
+                "tg_id": tg_id,
+                "tour_data":tours_list
+            }
+            tours.insert_one(schema)
+
+
+def get_from_tours_by_tg_id(tg_id):
+      tour_data = tours.find_one({"tg_id": tg_id})["tour_data"]
+      return tour_data
+
+
+def get_from_tours_by_tg_id_index(tg_id, index):
+      tour_data = tours.find_one({"tg_id": tg_id})["tour_data"][index]
+      return tour_data
