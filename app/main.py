@@ -56,6 +56,9 @@ def callback_inline(call):
 
     elif "next_page" in call.data:
         tour_functions.change_page(bot, call, 1)
+    
+    elif "buy_" in call.data:
+        tour_functions.buy_req(bot, call)
 
     elif call.data == 'edit':
         bot.delete_message(call.message.chat.id, call.message.id)

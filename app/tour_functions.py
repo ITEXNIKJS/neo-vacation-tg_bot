@@ -3,7 +3,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMedia
 import db_con
 import server_api
 from datetime import datetime
-
+import alka
 def routs_start_message(bot: telebot.TeleBot ,call):
 
     #проверка на заполненность
@@ -59,11 +59,11 @@ def answer_on_query(bot: telebot.TeleBot ,call):
 💵   Цена:  {tour["Цена"]}₽'''
     cur_page
     if(cur_page>0 and cur_page!=render_list_range-1 ):
-      btns.append([InlineKeyboardButton(text="<<", callback_data=f"previous_page_{cur_page}_{render_list_range}") ,InlineKeyboardButton(text="📱Перейти на сайт", url=tour["Доступные места в отеле"]),InlineKeyboardButton(text=">>", callback_data=f"next_page_{cur_page}_{render_list_range}")]) 
+      btns.append([InlineKeyboardButton(text="<<", callback_data=f"previous_page_{cur_page}_{render_list_range}") ,InlineKeyboardButton(text="🛒 Купить тур", callback_data=f"buy_{cur_page}"),InlineKeyboardButton(text="📱Перейти на сайт", url=tour["Доступные места в отеле"]),InlineKeyboardButton(text=">>", callback_data=f"next_page_{cur_page}_{render_list_range}")]) 
     elif cur_page==render_list_range-1:
-        btns.append([InlineKeyboardButton(text="<<", callback_data=f"previous_page_{cur_page}_{render_list_range}") ,InlineKeyboardButton(text="📱Перейти на сайт", url=tour["Доступные места в отеле"])]) 
+        btns.append([InlineKeyboardButton(text="<<", callback_data=f"previous_page_{cur_page}_{render_list_range}") ,InlineKeyboardButton(text="🛒 Купить тур", callback_data=f"buy_{cur_page}"),InlineKeyboardButton(text="📱Перейти на сайт", url=tour["Доступные места в отеле"])]) 
     elif cur_page <=0:
-        btns.append([ InlineKeyboardButton(text="📱Перейти на сайт", url=tour["Доступные места в отеле"]),InlineKeyboardButton(text=">>", callback_data=f"next_page_{cur_page}_{render_list_range}")]) 
+        btns.append([InlineKeyboardButton(text="🛒 Купить тур", callback_data=f"buy_{cur_page}"), InlineKeyboardButton(text="📱Перейти на сайт", url=tour["Доступные места в отеле"]),InlineKeyboardButton(text=">>", callback_data=f"next_page_{cur_page}_{render_list_range}")]) 
 
     keyboard = InlineKeyboardMarkup(btns, row_width=3)
     bot.send_message(chat_id=call.message.chat.id, text=answer, reply_markup=keyboard, parse_mode="HTML")
@@ -91,11 +91,18 @@ def change_page(bot: telebot.TeleBot ,call , step):
 💵   Цена:  {tour["Цена"]}₽'''
     
     if(cur_page>0 and cur_page!=len-1 ):
-      btns.append([InlineKeyboardButton(text="<<", callback_data=f"previous_page_{cur_page}_{len}") ,InlineKeyboardButton(text="📱Перейти на сайт", url=tour["Доступные места в отеле"]),InlineKeyboardButton(text=">>", callback_data=f"next_page_{cur_page}_{len}")]) 
+      btns.append([InlineKeyboardButton(text="<<", callback_data=f"previous_page_{cur_page}_{len}") ,InlineKeyboardButton(text="🛒 Купить тур", callback_data=f"buy_{cur_page}"),InlineKeyboardButton(text="📱Перейти на сайт", url=tour["Доступные места в отеле"]),InlineKeyboardButton(text=">>", callback_data=f"next_page_{cur_page}_{len}")]) 
     elif cur_page==len-1:
-        btns.append([InlineKeyboardButton(text="<<", callback_data=f"previous_page_{cur_page}_{len}") ,InlineKeyboardButton(text="📱Перейти на сайт", url=tour["Доступные места в отеле"])]) 
+        btns.append([InlineKeyboardButton(text="<<", callback_data=f"previous_page_{cur_page}_{len}") ,InlineKeyboardButton(text="🛒 Купить тур", callback_data=f"buy_{cur_page}"),InlineKeyboardButton(text="📱Перейти на сайт", url=tour["Доступные места в отеле"])]) 
     elif cur_page <=0:
-        btns.append([ InlineKeyboardButton(text="📱Перейти на сайт", url=tour["Доступные места в отеле"]),InlineKeyboardButton(text=">>", callback_data=f"next_page_{cur_page}_{len}")]) 
+        btns.append([InlineKeyboardButton(text="🛒 Купить тур", callback_data=f"buy_{cur_page}"), InlineKeyboardButton(text="📱Перейти на сайт", url=tour["Доступные места в отеле"]),InlineKeyboardButton(text=">>", callback_data=f"next_page_{cur_page}_{len}")]) 
 
-    keyboard = InlineKeyboardMarkup(btns, row_width=3)
+    keyboard = InlineKeyboardMarkup(btns, row_width=4)
     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.id ,text=answer,  reply_markup=keyboard, parse_mode="HTML")
+
+
+def buy_req(bot: telebot.TeleBot ,call):
+    cur_page = int(call.data.split(sep="_")[1])
+    doc = db_con.get_from_tours_by_tg_id_index(call.from_user.id, cur_page)
+    alka.insert_order(alka.select_user_ids_by_tg_id(call.from_user.id), doc)
+    bot.send_message(chat_id=call.message.chat.id, text="Отправил запрос на покупку")
