@@ -2,7 +2,11 @@ import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMedia
 import json
 import db_con
+import validations
+
 '''Функции ответа на нажатые кнопки и сохранение в MongoDB'''
+
+
 
 def start_message(bot: telebot.TeleBot ,message):
 
@@ -24,7 +28,7 @@ def listen_date(bot: telebot.TeleBot , message):
 
 
 def listen_length(bot: telebot.TeleBot , message):
-    msg = bot.reply_to(message,  text="Отправь на сколько ☀ дней у тебя отпуск")
+    msg = bot.reply_to(message,  text="Отправь на сколько ☀ дней у тебя отпуск (макс 21 день из-за ограничений провайдера информации)")
     bot.register_next_step_handler(msg, save_data, bot, 'vacation_days')
 
 
@@ -40,15 +44,37 @@ def listen_start_point(bot: telebot.TeleBot , message):
 
 
 def listen_price(bot: telebot.TeleBot , message):
-    msg = bot.reply_to(message,  text="Напиши, какой у тебя 💸 бюджет на отпуск")
+    msg = bot.reply_to(message,  text="Напиши, какой у тебя 💸 бюджет в ₽ на отпуск")
     bot.register_next_step_handler(msg, save_data, bot, 'max_price_budget')
 
 
 def save_data(msg, bot: telebot.TeleBot, type:str):
+    if type =="vacation_start_date" and not validations.validate_date(msg.text):
+        bot.send_message(msg.chat.id, text=f"😢 Дата {msg.text} не того формата либо это уже прошедший день. Введите День, месяц и год через точку: 15.03.2024")
+        return
+    if type =="vacation_days" and not validations.validate_integer(msg.text):
+        bot.send_message(msg.chat.id, text=f"😢 Введите целое число меньше 21 (из-за ограничений Провайдера информации)")
+        return
+    if type =="from" :
+        entered = msg.text.split(sep=', ')
+        input_data=[]
+        for e in entered:
+            js = db_con.find_by_name(e)
+            if js =="404":
+                bot.send_message(msg.chat.id, text=f"😢 Такого города еще нет в наших данных")
+                return
+            else:
+                input_data.append(js)
+
+    if type =="max_price_budget" and not validations.validate_price(msg.text):
+        bot.send_message(msg.chat.id, text=f"😢 Для работы нужно целое число без знаков, не ломайте меня(")
+        return
+
     bot.reply_to(message=msg, text= "👌 Отлично, я запомнил")
     print(msg)
     input_data = msg.text
     db_con.save_in_doc(msg.chat.id, input_data, type)
+    start_message(bot, msg)
 
 
 def save_data_countries(msg, bot: telebot.TeleBot, type:str):
@@ -65,6 +91,7 @@ def save_data_countries(msg, bot: telebot.TeleBot, type:str):
     
     db_con.save_in_doc(msg.chat.id, input_data, type)
     bot.reply_to(message=msg, text= "👌 Отлично, я запомнил")
+    start_message(bot, msg)
         
  
    

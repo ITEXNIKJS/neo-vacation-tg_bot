@@ -3,6 +3,7 @@ from pymongo.server_api import ServerApi
 from datetime import datetime
 from cfg import MONGOURL
 from server_api import get_tours
+import pandas as pd
 
 '''Подключение к MongoDB и функции работы с документом бота'''
 
@@ -70,28 +71,79 @@ def find_by_name(name):
                 if country!=None:
                       return country["countries"]
         return "404"
-        
+
+def clenup_tours(tg_id):
+    tours = client["HotLine_Tour"]['tours']
+    # Получение всех туров
+    tours_list = list(tours.find({"tg_id": tg_id}, {"_id": 0}))
+
+    # Фильтрация и сортировка туров
+    filtered_tours_list = []
+    for tour in tours_list:
+        # Фильтрация туров по категории
+        category = tour['tour_data'][0]['Категория']
+        if category not in filtered_tours_list:
+            filtered_tours_list.append(category)
+
+        # Фильтрация и сортировка туров в каждой категории
+        category_tours = [tour for tour in tours_list if tour['tour_data'][0]['Категория'] == category]
+        category_tours.sort(key=lambda x: x['tour_data'][0]['Цена'], reverse=True)
+        filtered_tours_list.append(category_tours[:4])
+
+    # Вывод результатов
+    for category, tours in zip(filtered_tours_list[::2], filtered_tours_list[1::2]):
+        print(f"Категория: {category}")
+        for tour in tours:
+            print(tour)
+
 def insert_tours(tg_id):
        # visit_target, cur_point, start_date, day_count, max_price
         tours.delete_one({"tg_id":tg_id})
         user_data = db.find_one({'tg_id':tg_id}, {"_id":0})
         for i in range(len(user_data['places_to_visit'])):
             print(user_data['places_to_visit'][i])
-            tours_list = get_tours(user_data['places_to_visit'][i]['name'], user_data['from'], user_data["vacation_start_date"], int(user_data["vacation_days"]), int(user_data["max_price_budget"]))
-            
-            print(tours_list)
-            schema = {
-                "tg_id": tg_id,
-                "tour_data":tours_list
-            }
-            tours.insert_one(schema)
+            tours_list = get_tours(tg_id ,user_data['places_to_visit'][i]['name'], user_data['from'], user_data["vacation_start_date"], int(user_data["vacation_days"]), int(user_data["max_price_budget"]))
+            if i==0:
+                print(tours_list)
+                schema = {
+                    "tg_id": tg_id,
+                    "tour_data":tours_list
+                }
+                tours.insert_one(schema)
+            else:
+                  for q in tours_list:
+                     tours.update_one({"tg_id": tg_id}, {"$push": {"tour_data": q}},upsert=True)
 
 
 def get_from_tours_by_tg_id(tg_id):
-      tour_data = tours.find_one({"tg_id": tg_id})["tour_data"]
-      return tour_data
+
+      return get_best_tours_by_category(tg_id)
 
 
 def get_from_tours_by_tg_id_index(tg_id, index):
-      tour_data = tours.find_one({"tg_id": tg_id})["tour_data"][index]
-      return tour_data
+     
+
+      return get_best_tours_by_category(tg_id)[index]
+
+import pandas as pd
+from pymongo import MongoClient
+
+def get_best_tours_by_category(tg_id):
+    # Подключение к MongoDB
+
+    # Получение данных из MongoDB
+    data = list(tours.find_one({"tg_id": tg_id})["tour_data"])
+
+    # Создаем словарь для хранения лучших туров по категориям
+    best_tours = {}
+
+    # Итерируем по данным и выбираем лучший тур для каждой категории
+    for tour in data:
+        category = tour['Категория']
+        price = tour['Цена']
+        if category not in best_tours or price < best_tours[category]['Цена']:
+            best_tours[category] = tour
+
+    return list(best_tours.values())
+
+

@@ -1,11 +1,12 @@
 import requests
 import json
-def get_tours(visit_target, cur_point, start_date, day_count, max_price):
+def get_tours(tg_id,visit_target, cur_point, start_date, day_count, max_price):
     headers = {
         'accept': 'application/json',
     }
 
     params = {
+        "user_id":str(tg_id),
         'country': visit_target,
         'city': cur_point,
         'start_date': start_date,
