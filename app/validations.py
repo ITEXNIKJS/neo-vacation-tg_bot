@@ -9,7 +9,7 @@ def validate_date(date_str):
         now = datetime.now()
  
         parsed_date = datetime.strptime(date_str, "%d.%m.%Y")
-        if parsed_date <= now:
+        if parsed_date < now:
             return False
         return True
     except ValueError:
@@ -21,7 +21,7 @@ def validate_integer(input_value):
         # Пытаемся преобразовать введенное значение в целое число
         int_value = int(input_value)
         # Если преобразование прошло успешно, возвращаем True
-        if int_value>=21:
+        if int_value>=20:
             return False
         return True
     except ValueError:

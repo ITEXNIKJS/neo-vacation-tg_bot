@@ -5,6 +5,17 @@ import server_api
 from datetime import datetime
 
 def routs_start_message(bot: telebot.TeleBot ,call):
+
+    #проверка на заполненность
+    unfilded = db_con.check_input(call.from_user.id)
+    if unfilded!=[]:
+        alert_message ="Вы не заполнили "
+        for i in unfilded:
+            alert_message+= i+"\n"
+        bot.answer_callback_query(call.id, text= alert_message, show_alert=True)
+        return
+
+
     query_info = db_con.get_body_by_tg_id(call.from_user.id)
     countries = ""
     for i in query_info["places_to_visit"]:
@@ -23,6 +34,8 @@ def routs_start_message(bot: telebot.TeleBot ,call):
 
 
 def answer_on_query(bot: telebot.TeleBot ,call):
+    
+    
     bot.send_message(call.message.chat.id, text= "⚙Собираем Информацию")
     db_con.insert_tours(call.from_user.id)
     render_list_range = len(db_con.get_from_tours_by_tg_id(call.from_user.id))
@@ -33,11 +46,11 @@ def answer_on_query(bot: telebot.TeleBot ,call):
    
     cur_page = 0
     tour = db_con.get_from_tours_by_tg_id_index(call.from_user.id, cur_page)
-    date_object = datetime.strptime(tour["Дата заезда"], '%Y-%m-%dT%H:%M:%S')
-    formatted_date = date_object.strftime("%Y.%m.%d")
+    # date_object = datetime.strptime(tour["Дата заезда"], '%Y-%m-%dT%H:%M:%S')
+    # formatted_date = date_object.strftime("%Y.%m.%d")
     answer = f'''Найдено {render_list_range} туров\n\nТур №{cur_page+1}\n
 🏆   Вот {tour['Категория']}\n
-📅   Дата заезда: {formatted_date} 
+📅   Дата заезда: {tour["Дата заезда"]} 
 🕕   Длительность в ночах: {tour["Длительность в ночах"]} 
 🌏   Регион проживания: {tour["Регион проживания"]} 
 🏨   Отель:  {tour["Отель"]} 
@@ -65,11 +78,11 @@ def change_page(bot: telebot.TeleBot ,call , step):
    
     tour = db_con.get_from_tours_by_tg_id_index(call.from_user.id, cur_page)
     
-    date_object = datetime.strptime(tour["Дата заезда"], '%Y-%m-%dT%H:%M:%S')
-    formatted_date = date_object.strftime("%Y.%m.%d")
+    # date_object = datetime.strptime(tour["Дата заезда"], '%Y-%m-%dT%H:%M:%S')
+    # formatted_date = date_object.strftime("%Y.%m.%d")
     answer = f'''Найдено {len} туров\n\nТур №{cur_page+1}\n
 🏆   Вот {tour['Категория']}\n
-📅   Дата заезда: {formatted_date} 
+📅   Дата заезда: {tour["Дата заезда"]} 
 🕕   Длительность в ночах: {tour["Длительность в ночах"]} 
 🌏   Регион проживания: {tour["Регион проживания"]} 
 🏨   Отель:  {tour["Отель"]} 

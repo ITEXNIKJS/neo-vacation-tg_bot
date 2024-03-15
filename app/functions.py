@@ -28,19 +28,19 @@ def listen_date(bot: telebot.TeleBot , message):
 
 
 def listen_length(bot: telebot.TeleBot , message):
-    msg = bot.reply_to(message,  text="Отправь на сколько ☀ дней у тебя отпуск (макс 21 день из-за ограничений провайдера информации)")
+    msg = bot.reply_to(message,  text="Отправь на сколько ☀ дней у тебя отпуск (макс 19 день из-за ограничений провайдера информации)")
     bot.register_next_step_handler(msg, save_data, bot, 'vacation_days')
 
 
 def listen_countres(bot: telebot.TeleBot , message):
-    msg = bot.reply_to(message,  text="Какие 🏴‍☠️страны, 🏙 города тебе интересны?")    
+    msg = bot.reply_to(message,  text="Какие 🏴‍☠️страны тебе интересны?")    
     bot.register_next_step_handler(msg, save_data_countries, bot, 'places_to_visit')
 
 
 
 def listen_start_point(bot: telebot.TeleBot , message):
     msg = bot.reply_to(message,  text="Напиши, 📍 откуда ты вылетаешь")
-    bot.register_next_step_handler(msg, save_data, bot, 'from')
+    bot.register_next_step_handler(msg, save_data_countries, bot, 'from')
 
 
 def listen_price(bot: telebot.TeleBot , message):
@@ -53,7 +53,7 @@ def save_data(msg, bot: telebot.TeleBot, type:str):
         bot.send_message(msg.chat.id, text=f"😢 Дата {msg.text} не того формата либо это уже прошедший день. Введите День, месяц и год через точку: 15.03.2024")
         return
     if type =="vacation_days" and not validations.validate_integer(msg.text):
-        bot.send_message(msg.chat.id, text=f"😢 Введите целое число меньше 21 (из-за ограничений Провайдера информации)")
+        bot.send_message(msg.chat.id, text=f"😢 Введите целое число не более 19 (из-за ограничений Провайдера информации)")
         return
     if type =="from" :
         entered = msg.text.split(sep=', ')
@@ -84,7 +84,21 @@ def save_data_countries(msg, bot: telebot.TeleBot, type:str):
     for e in entered:
         js = db_con.find_by_name(e)
         if js =="404":
-             bot.send_message(msg.chat.id, text=f"😢 В {e} еще не возим")
+             if type =='from':
+                bot.send_message(msg.chat.id, text=f"😢 Из {e} еще не возим")
+             else:
+                bot.send_message(msg.chat.id, text=f"😢 В {e} еще не возим")
+             return
+        elif len(js)==3 and type=="places_to_visit":
+            bot.send_message(msg.chat.id, text=f"😢 Укажи тут страну")
+            return
+        elif len(js)==5 and type=="from":
+            bot.send_message(msg.chat.id, text=f"😢 Укажи тут свой город России")
+            return
+
+        if type=="from":   
+            input_data= js['name']
+            break
         else:
             input_data.append(js)
    

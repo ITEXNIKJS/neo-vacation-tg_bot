@@ -4,6 +4,7 @@ from datetime import datetime
 from cfg import MONGOURL
 from server_api import get_tours
 import pandas as pd
+import alka
 
 '''Подключение к MongoDB и функции работы с документом бота'''
 
@@ -102,7 +103,8 @@ def insert_tours(tg_id):
         user_data = db.find_one({'tg_id':tg_id}, {"_id":0})
         for i in range(len(user_data['places_to_visit'])):
             print(user_data['places_to_visit'][i])
-            tours_list = get_tours(tg_id ,user_data['places_to_visit'][i]['name'], user_data['from'], user_data["vacation_start_date"], int(user_data["vacation_days"]), int(user_data["max_price_budget"]))
+            
+            tours_list = get_tours(alka.select_user_ids_by_tg_id(tg_id) ,user_data['places_to_visit'][i]['name'], user_data['from'], user_data["vacation_start_date"], int(user_data["vacation_days"]), int(user_data["max_price_budget"]))
             if i==0:
                 print(tours_list)
                 schema = {
@@ -147,3 +149,25 @@ def get_best_tours_by_category(tg_id):
     return list(best_tours.values())
 
 
+def check_input(tg_id):
+    schema = {
+            "tg_id": tg_id,
+            "vacation_start_date": "",
+            "vacation_days": 0,
+            "places_to_visit": [],
+            "from": "",
+            "max_price_budget": 0,
+            "min_price_budget": 0
+        
+        }
+    
+    u_input = dict(db.find_one({ "tg_id": tg_id}))
+    matches = []
+    keys=["vacation_start_date","vacation_days", "places_to_visit", "from", "max_price_budget"]  
+    
+    for i in keys:
+        if u_input[i] == schema[i]:
+            matches.append(i)
+    return matches
+
+print(check_input(406895370))

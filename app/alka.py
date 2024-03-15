@@ -17,6 +17,9 @@ class User(Base):
     tg_username = Column(String, unique=True)
 
 
+   
+
+
 engine = create_engine('cockroachdb://neohack:CectGfJj0TEhKlvUmN_0hQ@neo-hack-vacantion-14064.8nj.gcp-europe-west1.cockroachlabs.cloud:26257/neohack-vacation-website', 
                        connect_args={'sslmode': "allow"}, echo=True)
 
@@ -28,4 +31,9 @@ def check_user(tg_id):
     user = session.query(User).filter_by(tg_id=tg_id).first()
     return user is not None
 
-print(check_user(637382945))
+def select_user_ids_by_tg_id(tg_id):
+
+    user_ids = session.query(User.id).filter(User.tg_id == tg_id).first()
+    return user_ids[0]
+
+print(select_user_ids_by_tg_id(637382945))
