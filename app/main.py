@@ -4,6 +4,7 @@ from datetime import datetime
 import functions
 import logging
 import tour_functions
+import alka
 '''
 Обработчики всех возможных кнопок и вводов из чата ТГ
 '''
@@ -18,12 +19,16 @@ current_month = datetime.now().month
 
 @bot.message_handler(commands=["start"])
 def start_answer(message):
-    functions.start_message(bot, message)
+    if alka.check_user(message.from_user.id):
+        functions.start_message(bot, message)
+
 
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
+
+
     if call.data == 'set_date':
         functions.listen_date(bot, call.message)
         
