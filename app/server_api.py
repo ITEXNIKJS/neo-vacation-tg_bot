@@ -1,5 +1,8 @@
 import requests
 import json
+from dotenv import dotenv_values
+env_vars = dotenv_values()
+
 def get_tours(tg_id,visit_target, cur_point, start_date, day_count, max_price):
     headers = {
         'accept': 'application/json',
@@ -17,7 +20,7 @@ def get_tours(tg_id,visit_target, cur_point, start_date, day_count, max_price):
 
    
     
-    response = requests.get('http://127.0.0.1:8000/api/v1/tour/', params=params, headers=headers)
+    response = requests.get(env_vars.get('SERVER_ENDP'), params=params, headers=headers)
  
     return json.loads(response.text) 
 

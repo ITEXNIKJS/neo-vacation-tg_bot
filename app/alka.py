@@ -4,6 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import uuid
 import os
+from cfg import ENGINE_URL
 
 from sqlalchemy import Column, DateTime, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
@@ -45,7 +46,7 @@ class Order(Base):
     user = relationship("User", back_populates="orders")
 
 
-engine = create_engine('cockroachdb://neohack:CectGfJj0TEhKlvUmN_0hQ@neo-hack-vacantion-14064.8nj.gcp-europe-west1.cockroachlabs.cloud:26257/neohack-vacation-website', 
+engine = create_engine(ENGINE_URL, 
                        connect_args={'sslmode': "allow"}, echo=True)
 
 Session = sessionmaker(bind=engine)
