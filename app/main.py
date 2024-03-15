@@ -43,6 +43,7 @@ def callback_inline(call):
         tour_functions.routs_start_message(bot, call)
         
     elif call.data == 'send_query':
+        bot.delete_message(call.message.chat.id, call.message.id)
         tour_functions.answer_on_query(bot, call)
     
     elif "previous_page" in call.data:

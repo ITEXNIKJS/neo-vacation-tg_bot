@@ -22,27 +22,27 @@ def routs_start_message(bot: telebot.TeleBot ,call):
 
 
 def answer_on_query(bot: telebot.TeleBot ,call):
-    bot.send_message(call.message.chat.id, text= "Собираем Информацию")
+    bot.send_message(call.message.chat.id, text= "⚙Собираем Информацию")
     db_con.insert_tours(call.from_user.id)
     render_list_range = len(db_con.get_from_tours_by_tg_id(call.from_user.id))
     if render_list_range==0:
         bot.send_message(chat_id=call.message.chat.id, text="Мы ничего не нашли, попробуйте подвинуть дату")
         return
     btns=[]
-    btns.append([InlineKeyboardButton(text="<<", callback_data=f"previous_page_0_{render_list_range}"),InlineKeyboardButton(text=">>", callback_data=f"next_page_0_{render_list_range}")])
-    keyboard = InlineKeyboardMarkup(btns, row_width=2)
+   
     cur_page = 0
     tour = db_con.get_from_tours_by_tg_id_index(call.from_user.id, cur_page)
     answer = f'''Найдено {render_list_range} туров\n\nТур №{cur_page+1}\n
-    Дата заезда: {tour["Дата заезда"]}
-    Длительность в ночах: {tour["Длительность в ночах"]}
-    Регион проживания: {tour["Регион проживания"]}
-    Отель: {tour["Отель"]}
-    Пансион: {tour["Пансион"]}
-    Тип номера: {tour["Тип номера"]}
-    Цена: {tour["Цена"]}
-    Доступные места в отеле: {tour["Доступные места в отеле"]}'''
-    bot.send_message(chat_id=call.message.chat.id, text=answer, reply_markup=keyboard)
+📅   Дата заезда: {tour["Дата заезда"]} 
+🕕   Длительность в ночах: {tour["Длительность в ночах"]} 
+🌏   Регион проживания: {tour["Регион проживания"]} 
+🏨   Отель:  {tour["Отель"]} 
+🍖   Пансион:  {tour["Пансион"]} 
+🛌   Тип номера: {tour["Тип номера"]} 
+💵   Цена:  {tour["Цена"]}₽'''
+    btns.append([InlineKeyboardButton(text="<<", callback_data=f"previous_page_{cur_page}_{render_list_range}") ,InlineKeyboardButton(text="📱Перейти на сайт", url=tour["Доступные места в отеле"]),InlineKeyboardButton(text=">>", callback_data=f"next_page_{cur_page}_{render_list_range}")])
+    keyboard = InlineKeyboardMarkup(btns, row_width=3)
+    bot.send_message(chat_id=call.message.chat.id, text=answer, reply_markup=keyboard, parse_mode="HTML")
 
 def change_page(bot: telebot.TeleBot ,call , step):
     cur_page = int(call.data.split(sep="_")[2])+step
@@ -51,17 +51,18 @@ def change_page(bot: telebot.TeleBot ,call , step):
 
   
     btns=[]
-    btns.append([InlineKeyboardButton(text="<<", callback_data=f"previous_page_{cur_page}_{len}"),InlineKeyboardButton(text=">>", callback_data=f"next_page_{cur_page}_{len}")])
-    keyboard = InlineKeyboardMarkup(btns, row_width=2)
+   
     tour = db_con.get_from_tours_by_tg_id_index(call.from_user.id, cur_page)
     answer = f'''Найдено {len} туров\n\nТур №{cur_page+1}\n
-    Дата заезда: {tour["Дата заезда"]}
-    Длительность в ночах: {tour["Длительность в ночах"]}
-    Регион проживания: {tour["Регион проживания"]}
-    Отель: {tour["Отель"]}
-    Пансион: {tour["Пансион"]}
-    Тип номера: {tour["Тип номера"]}
-    Цена: {tour["Цена"]}
-    Доступные места в отеле: {tour["Доступные места в отеле"]}'''
+📅   Дата заезда: {tour["Дата заезда"]} 
+🕕   Длительность в ночах: {tour["Длительность в ночах"]} 
+🌏   Регион проживания: {tour["Регион проживания"]} 
+🏨   Отель:  {tour["Отель"]} 
+🍖   Пансион:  {tour["Пансион"]} 
+🛌   Тип номера: {tour["Тип номера"]} 
+💵   Цена:  {tour["Цена"]}₽'''
+    
 
-    bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.id ,text=answer,  reply_markup=keyboard)
+    btns.append([InlineKeyboardButton(text="<<", callback_data=f"previous_page_{cur_page}_{len}") ,InlineKeyboardButton(text="📱Перейти на сайт", url=tour["Доступные места в отеле"]),InlineKeyboardButton(text=">>", callback_data=f"next_page_{cur_page}_{len}")]) 
+    keyboard = InlineKeyboardMarkup(btns, row_width=3)
+    bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.id ,text=answer,  reply_markup=keyboard, parse_mode="HTML")
