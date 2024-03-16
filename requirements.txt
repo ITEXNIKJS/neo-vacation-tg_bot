@@ -1,1 +1,7 @@
 pyTelegramBotAPI
+python-dotenv
+pymongo
+pandas
+sqlalchemy
+sqlalchemy-cockroachdb
+psycopg2
